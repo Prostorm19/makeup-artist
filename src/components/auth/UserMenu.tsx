@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -84,7 +85,7 @@ const UserMenu = () => {
 
                     <DropdownMenuItem className="cursor-pointer">
                         <Home className="mr-2 h-4 w-4" />
-                        <a href={`/dashboard/${userType}`}>Dashboard</a>
+                        <Link to={`/dashboard/${userType}`}>Dashboard</Link>
                     </DropdownMenuItem>
 
                     {userType === 'client' && (
@@ -115,7 +116,7 @@ const UserMenu = () => {
 
                     <DropdownMenuItem className="cursor-pointer">
                         <User className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
+                        <Link to={`/profile/${userType}`}>Profile</Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem className="cursor-pointer">
