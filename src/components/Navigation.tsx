@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Instagram, Phone, Mail } from "lucide-react";
 import UserMenu from "@/components/auth/UserMenu";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { userType, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   const navItems = [
     { name: "Home", href: "/" },
@@ -15,6 +18,22 @@ const Navigation = () => {
     { name: "Testimonials", href: "/testimonials" },
     { name: "Contact", href: "/contact" },
   ];
+
+  const handleBookNowClick = () => {
+    if (!isAuthenticated) {
+      // If not logged in, redirect to home page where they can sign up
+      navigate('/');
+    } else if (userType === 'client') {
+      // If client, redirect to dashboard where they can find artists
+      navigate('/dashboard/client');
+    } else if (userType === 'artist') {
+      // If artist, redirect to their dashboard (no booking needed)
+      navigate('/dashboard/artist');
+    }
+  };
+
+  // Only show Book Now button for non-artists
+  const showBookNowButton = !isAuthenticated || userType !== 'artist';
 
   return (
     <nav className="fixed top-0 w-full z-50 glass backdrop-blur-xl">
@@ -52,9 +71,14 @@ const Navigation = () => {
             <a href="#" className="text-foreground hover:text-primary transition-colors">
               <Mail className="w-5 h-5" />
             </a>
-            <Button className="btn-luxury ml-4">
-              Book Now
-            </Button>
+            {showBookNowButton && (
+              <Button
+                className="bg-pink-600 hover:bg-pink-700 text-white"
+                onClick={handleBookNowClick}
+              >
+                Book Now
+              </Button>
+            )}
             <UserMenu />
           </div>
 
@@ -94,9 +118,14 @@ const Navigation = () => {
                   <Mail className="w-5 h-5" />
                 </a>
               </div>
-              <Button className="btn-luxury self-start">
-                Book Now
-              </Button>
+              {showBookNowButton && (
+                <Button
+                  className="btn-luxury self-start"
+                  onClick={handleBookNowClick}
+                >
+                  Book Now
+                </Button>
+              )}
               <div className="pt-2">
                 <UserMenu />
               </div>
