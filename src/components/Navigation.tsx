@@ -73,7 +73,7 @@ const Navigation = () => {
             </a>
             {showBookNowButton && (
               <Button
-                className="bg-pink-600 hover:bg-pink-700 text-white"
+                className="btn-luxury"
                 onClick={handleBookNowClick}
               >
                 Book Now
