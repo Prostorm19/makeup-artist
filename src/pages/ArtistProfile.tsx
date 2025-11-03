@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import ImageUpload from "@/components/ui/ImageUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import {
     Palette,
@@ -68,6 +69,10 @@ const ArtistProfile = () => {
             website: ""
         });
         setIsEditing(false);
+    };
+
+    const handleImageChange = (imageUrl: string) => {
+        updateProfile({ profileImage: imageUrl });
     };
 
     const getUserInitials = (name?: string, email?: string) => {
@@ -142,20 +147,13 @@ const ArtistProfile = () => {
                         <div className="lg:col-span-1">
                             <Card className="glass border-primary/20">
                                 <CardHeader className="text-center">
-                                    <div className="relative mx-auto mb-4">
-                                        <Avatar className="w-24 h-24 border-4 border-primary/20">
-                                            <AvatarImage src={user?.profileImage} alt={user?.name} />
-                                            <AvatarFallback className="bg-accent/10 text-accent text-2xl font-bold">
-                                                {getUserInitials(user?.name, user?.email)}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <Button
-                                            size="icon"
-                                            variant="secondary"
-                                            className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 bg-accent/10 hover:bg-accent/20"
-                                        >
-                                            <Camera className="w-4 h-4" />
-                                        </Button>
+                                    <div className="mb-4">
+                                        <ImageUpload
+                                            currentImage={user?.profileImage}
+                                            onImageChange={handleImageChange}
+                                            userInitials={getUserInitials(user?.name, user?.email)}
+                                            size="lg"
+                                        />
                                     </div>
                                     <CardTitle className="text-foreground">{user?.name}</CardTitle>
                                     <CardDescription className="flex items-center justify-center">

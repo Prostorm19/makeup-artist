@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -70,12 +70,21 @@ interface Review {
 
 const ClientDashboard = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("bookings");
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedBookingForReview, setSelectedBookingForReview] = useState<Booking | null>(null);
+
+  // Handle URL-based tab navigation
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['bookings', 'artists', 'favorites', 'reviews'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   // Form states
   const [bookingForm, setBookingForm] = useState({

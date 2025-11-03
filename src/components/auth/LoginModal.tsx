@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { Mail, Lock, User, Palette, Loader2 } from "lucide-react";
 
@@ -20,9 +21,13 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     const [artistPassword, setArtistPassword] = useState("");
     const [isLogin, setIsLogin] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
-    const { login, signup } = useAuth();
+    const { login, signup, error, clearError } = useAuth();
 
-    const handleUserLogin = async (e: React.FormEvent) => {
+    useEffect(() => {
+        clearError(); // Clear errors when modal opens or mode changes
+    }, [isOpen, isLogin, clearError]);
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         try {
@@ -137,7 +142,12 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                             </Badge>
                         </div>
 
-                        <form onSubmit={isLogin ? handleUserLogin : handleUserSignup} className="space-y-4">
+                        <form onSubmit={isLogin ? handleLogin : handleUserSignup} className="space-y-4">
+                            {error && (
+                                <Alert variant="destructive">
+                                    <AlertDescription>{error}</AlertDescription>
+                                </Alert>
+                            )}
                             <div className="space-y-2">
                                 <Label htmlFor="user-email">Email</Label>
                                 <div className="relative">
@@ -186,6 +196,11 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                         </div>
 
                         <form onSubmit={isLogin ? handleArtistLogin : handleArtistSignup} className="space-y-4">
+                            {error && (
+                                <Alert variant="destructive">
+                                    <AlertDescription>{error}</AlertDescription>
+                                </Alert>
+                            )}
                             <div className="space-y-2">
                                 <Label htmlFor="artist-email">Email</Label>
                                 <div className="relative">
