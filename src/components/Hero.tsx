@@ -1,8 +1,29 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import heroImage from "@/assets/hero-image.jpg";
 
 const Hero = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, userType } = useAuth();
+
+  const handleBookSession = () => {
+    if (!isAuthenticated) {
+      // If not authenticated, navigate to home where they can sign up
+      navigate('/');
+    } else if (userType === 'client') {
+      // If client, navigate to their dashboard to browse artists
+      navigate('/dashboard/client');
+    } else if (userType === 'artist') {
+      // If artist, navigate to their dashboard
+      navigate('/dashboard/artist');
+    }
+  };
+
+  const handleViewPortfolio = () => {
+    navigate('/portfolio');
+  };
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -39,7 +60,11 @@ const Hero = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button size="lg" className="btn-luxury text-lg px-8 py-6 group">
+              <Button
+                size="lg"
+                className="btn-luxury text-lg px-8 py-6 group"
+                onClick={handleBookSession}
+              >
                 Book Your Session
                 <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
               </Button>
@@ -48,6 +73,7 @@ const Hero = () => {
                 variant="outline"
                 size="lg"
                 className="glass border-primary/30 bg-primary/10 text-primary-foreground hover:bg-primary/10 text-lg px-8 py-6"
+                onClick={handleViewPortfolio}
               >
                 View Portfolio
               </Button>

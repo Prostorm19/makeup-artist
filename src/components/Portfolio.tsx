@@ -74,8 +74,8 @@ const Portfolio = () => {
     { name: "Natural", value: "natural" },
   ];
 
-  const filteredItems = activeFilter === "all" 
-    ? portfolioItems 
+  const filteredItems = activeFilter === "all"
+    ? portfolioItems
     : portfolioItems.filter(item => item.category === activeFilter);
 
   return (
@@ -86,7 +86,7 @@ const Portfolio = () => {
             My <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Portfolio</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Discover the artistry and passion behind every transformation. 
+            Discover the artistry and passion behind every transformation.
             Each look tells a unique story of beauty and confidence.
           </p>
         </div>
@@ -98,11 +98,10 @@ const Portfolio = () => {
               key={filter.value}
               variant={activeFilter === filter.value ? "default" : "outline"}
               onClick={() => setActiveFilter(filter.value)}
-              className={`transition-all duration-300 ${
-                activeFilter === filter.value 
-                  ? "btn-luxury" 
+              className={`transition-all duration-300 ${activeFilter === filter.value
+                  ? "btn-luxury"
                   : "glass border-primary/30 hover:border-primary/60"
-              }`}
+                }`}
             >
               {filter.name}
             </Button>
@@ -112,7 +111,7 @@ const Portfolio = () => {
         {/* Portfolio Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredItems.map((item, index) => (
-            <div 
+            <div
               key={item.id}
               className={`portfolio-item group fade-in-up delay-${Math.min(500, (index + 1) * 100)}`}
             >
@@ -122,7 +121,7 @@ const Portfolio = () => {
                   alt={item.title}
                   className="w-full h-80 object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                
+
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -157,11 +156,7 @@ const Portfolio = () => {
           ))}
         </div>
 
-        <div className="text-center mt-12 fade-in-up delay-300">
-          <Button size="lg" className="btn-luxury">
-            View Full Gallery
-          </Button>
-        </div>
+
       </div>
     </section>
   );

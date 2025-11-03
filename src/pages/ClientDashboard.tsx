@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -13,14 +13,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  Calendar, 
-  Clock, 
-  DollarSign, 
-  Star, 
-  Plus, 
-  User, 
-  Phone, 
+import { dataService, type Artist } from "@/services/dataService";
+import {
+  Calendar,
+  Clock,
+  DollarSign,
+  Star,
+  Plus,
+  User,
+  Phone,
   Mail,
   ArrowLeft,
   Eye,
@@ -29,17 +30,6 @@ import {
   Search,
   Filter
 } from "lucide-react";
-
-interface Artist {
-  id: string;
-  name: string;
-  specialties: string[];
-  rating: number;
-  priceRange: string;
-  location: string;
-  avatar?: string;
-  isAvailable: boolean;
-}
 
 interface TimeSlot {
   id: string;
@@ -86,7 +76,7 @@ const ClientDashboard = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedBookingForReview, setSelectedBookingForReview] = useState<Booking | null>(null);
-  
+
   // Form states
   const [bookingForm, setBookingForm] = useState({
     notes: "",
@@ -98,27 +88,13 @@ const ClientDashboard = () => {
     comment: ""
   });
 
-  // Mock data
-  const [availableArtists] = useState<Artist[]>([
-    {
-      id: "1",
-      name: "Bella Martinez",
-      specialties: ["Bridal", "Evening Glam", "Natural"],
-      rating: 4.9,
-      priceRange: "$100-$300",
-      location: "Downtown",
-      isAvailable: true
-    },
-    {
-      id: "2",
-      name: "Sophie Chen",
-      specialties: ["Editorial", "Fashion", "Creative"],
-      rating: 4.8,
-      priceRange: "$150-$400",
-      location: "Uptown",
-      isAvailable: true
-    }
-  ]);
+  const [availableArtists, setAvailableArtists] = useState<Artist[]>([]);
+
+  // Load artists when component mounts
+  useEffect(() => {
+    const artists = dataService.getAllArtists();
+    setAvailableArtists(artists);
+  }, []);
 
   const [availableSlots] = useState<TimeSlot[]>([
     {
@@ -188,17 +164,7 @@ const ClientDashboard = () => {
     }
   ]);
 
-  const [favoriteArtists, setFavoriteArtists] = useState<Artist[]>([
-    {
-      id: "1",
-      name: "Bella Martinez",
-      specialties: ["Bridal", "Evening Glam"],
-      rating: 4.9,
-      priceRange: "$100-$300",
-      location: "Downtown",
-      isAvailable: true
-    }
-  ]);
+  const [favoriteArtists, setFavoriteArtists] = useState<Artist[]>([]);
 
   const [myReviews, setMyReviews] = useState<Review[]>([
     {
@@ -229,7 +195,7 @@ const ClientDashboard = () => {
         notes: bookingForm.notes,
         createdAt: new Date().toISOString()
       };
-      
+
       setMyBookings(prev => [newBooking, ...prev]);
       setIsBookingModalOpen(false);
       setSelectedTimeSlot(null);
@@ -248,7 +214,7 @@ const ClientDashboard = () => {
         date: new Date().toLocaleDateString(),
         canEdit: true
       };
-      
+
       setMyReviews(prev => [newReview, ...prev]);
       setIsReviewModalOpen(false);
       setSelectedBookingForReview(null);
@@ -277,9 +243,9 @@ const ClientDashboard = () => {
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <Star 
-        key={i} 
-        className={`w-4 h-4 ${i < rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} 
+      <Star
+        key={i}
+        className={`w-4 h-4 ${i < rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`}
       />
     ));
   };
@@ -292,8 +258,8 @@ const ClientDashboard = () => {
         onClick={() => onChange(i + 1)}
         className="focus:outline-none"
       >
-        <Star 
-          className={`w-6 h-6 ${i < currentRating ? 'text-yellow-500 fill-current' : 'text-gray-300'} hover:text-yellow-400 transition-colors`} 
+        <Star
+          className={`w-6 h-6 ${i < currentRating ? 'text-yellow-500 fill-current' : 'text-gray-300'} hover:text-yellow-400 transition-colors`}
         />
       </button>
     ));
@@ -476,7 +442,7 @@ const ClientDashboard = () => {
                         <div className="flex items-start justify-between">
                           <div className="flex items-start space-x-4">
                             <Avatar className="w-16 h-16">
-                              <AvatarImage src={artist.avatar} alt={artist.name} />
+                              <AvatarImage src={artist.image} alt={artist.name} />
                               <AvatarFallback className="text-lg">{artist.name[0]}</AvatarFallback>
                             </Avatar>
                             <div>
@@ -499,7 +465,7 @@ const ClientDashboard = () => {
                                 </div>
                                 <div className="flex items-center">
                                   <DollarSign className="w-3 h-3 mr-1" />
-                                  {artist.priceRange}
+                                  ${artist.hourlyRate}/hour
                                 </div>
                               </div>
                             </div>
@@ -511,10 +477,9 @@ const ClientDashboard = () => {
                               onClick={() => toggleFavorite(artist)}
                               className={favoriteArtists.some(fav => fav.id === artist.id) ? "text-red-600" : ""}
                             >
-                              <Heart 
-                                className={`w-4 h-4 mr-1 ${
-                                  favoriteArtists.some(fav => fav.id === artist.id) ? 'fill-current' : ''
-                                }`} 
+                              <Heart
+                                className={`w-4 h-4 mr-1 ${favoriteArtists.some(fav => fav.id === artist.id) ? 'fill-current' : ''
+                                  }`}
                               />
                               {favoriteArtists.some(fav => fav.id === artist.id) ? 'Saved' : 'Save'}
                             </Button>
@@ -533,8 +498,8 @@ const ClientDashboard = () => {
                                   {availableSlots
                                     .filter(slot => slot.artistId === artist.id)
                                     .map((slot) => (
-                                      <div 
-                                        key={slot.id} 
+                                      <div
+                                        key={slot.id}
                                         className="p-3 rounded-lg border border-primary/20 hover:bg-primary/5 cursor-pointer"
                                         onClick={() => {
                                           setSelectedTimeSlot(slot);
@@ -680,11 +645,11 @@ const ClientDashboard = () => {
                       <span className="font-semibold">${selectedTimeSlot.price}</span>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="location">Preferred Location</Label>
-                      <Select value={bookingForm.location} onValueChange={(value) => setBookingForm({...bookingForm, location: value})}>
+                      <Select value={bookingForm.location} onValueChange={(value) => setBookingForm({ ...bookingForm, location: value })}>
                         <SelectTrigger className="glass">
                           <SelectValue placeholder="Choose location" />
                         </SelectTrigger>
@@ -695,28 +660,28 @@ const ClientDashboard = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="notes">Special Notes (Optional)</Label>
                       <Textarea
                         id="notes"
                         value={bookingForm.notes}
-                        onChange={(e) => setBookingForm({...bookingForm, notes: e.target.value})}
+                        onChange={(e) => setBookingForm({ ...bookingForm, notes: e.target.value })}
                         className="glass"
                         placeholder="Any special requests or notes for the artist..."
                       />
                     </div>
                   </div>
-                  
+
                   <div className="flex space-x-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="flex-1"
                       onClick={() => setIsBookingModalOpen(false)}
                     >
                       Cancel
                     </Button>
-                    <Button 
+                    <Button
                       className="flex-1 btn-luxury"
                       onClick={handleBookAppointment}
                     >
@@ -742,36 +707,36 @@ const ClientDashboard = () => {
                     <p className="text-sm text-muted-foreground">with {selectedBookingForReview.artistName}</p>
                     <p className="text-sm text-muted-foreground">{selectedBookingForReview.date}</p>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Rating</Label>
                       <div className="flex items-center space-x-1">
-                        {renderRatingSelector(reviewForm.rating, (rating) => setReviewForm({...reviewForm, rating}))}
+                        {renderRatingSelector(reviewForm.rating, (rating) => setReviewForm({ ...reviewForm, rating }))}
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="comment">Your Review</Label>
                       <Textarea
                         id="comment"
                         value={reviewForm.comment}
-                        onChange={(e) => setReviewForm({...reviewForm, comment: e.target.value})}
+                        onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
                         className="glass"
                         placeholder="Tell others about your experience..."
                       />
                     </div>
                   </div>
-                  
+
                   <div className="flex space-x-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="flex-1"
                       onClick={() => setIsReviewModalOpen(false)}
                     >
                       Cancel
                     </Button>
-                    <Button 
+                    <Button
                       className="flex-1 btn-luxury"
                       onClick={handleSubmitReview}
                     >

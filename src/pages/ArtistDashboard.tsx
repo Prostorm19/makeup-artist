@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { dataService, type TimeSlot, type Booking } from "@/services/dataService";
 import {
     Calendar,
     Clock,
@@ -25,31 +26,6 @@ import {
     Eye,
     Trash2
 } from "lucide-react";
-
-interface TimeSlot {
-    id: string;
-    date: string;
-    time: string;
-    duration: number;
-    service: string;
-    price: number;
-    isAvailable: boolean;
-}
-
-interface Booking {
-    id: string;
-    clientName: string;
-    clientEmail: string;
-    clientPhone: string;
-    service: string;
-    date: string;
-    time: string;
-    duration: number;
-    price: number;
-    status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-    notes?: string;
-    createdAt: string;
-}
 
 interface Review {
     id: string;
@@ -67,6 +43,8 @@ const ArtistDashboard = () => {
     const [isAddSlotOpen, setIsAddSlotOpen] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [isBookingDetailsOpen, setIsBookingDetailsOpen] = useState(false);
+    const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+    const [bookings, setBookings] = useState<Booking[]>([]);
 
     // Form states
     const [newSlot, setNewSlot] = useState({
@@ -77,86 +55,36 @@ const ArtistDashboard = () => {
         price: ""
     });
 
-    // Mock data - In real app, this would come from API
-    const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
-        {
-            id: "1",
-            date: "2025-11-02",
-            time: "10:00",
-            duration: 2,
-            service: "Bridal Makeup",
-            price: 200,
-            isAvailable: true
-        },
-        {
-            id: "2",
-            date: "2025-11-02",
-            time: "15:00",
-            duration: 1.5,
-            service: "Evening Glam",
-            price: 150,
-            isAvailable: true
-        }
-    ]);
+    // Initialize data when component mounts or user changes
+    useEffect(() => {
+        if (user?.id) {
+            // Initialize artist profile in data service
+            dataService.initializeArtist(user.id, {
+                name: user.name,
+                email: user.email
+            });
 
-    const [pendingBookings, setPendingBookings] = useState<Booking[]>([
-        {
-            id: "1",
-            clientName: "Lisa Wilson",
-            clientEmail: "lisa@email.com",
-            clientPhone: "+1 (555) 123-4567",
-            service: "Photoshoot Makeup",
-            date: "2025-11-26",
-            time: "9:00 AM",
-            duration: 2,
-            price: 180,
-            status: "pending",
-            notes: "Need natural look for headshots",
-            createdAt: "2025-11-01"
-        },
-        {
-            id: "2",
-            clientName: "Maria Garcia",
-            clientEmail: "maria@email.com",
-            clientPhone: "+1 (555) 987-6543",
-            service: "Wedding Makeup",
-            date: "2025-11-28",
-            time: "8:00 AM",
-            duration: 3,
-            price: 250,
-            status: "confirmed",
-            createdAt: "2025-10-28"
-        }
-    ]);
+            // Load time slots and bookings
+            const slots = dataService.getArtistTimeSlots(user.id);
+            const artistBookings = dataService.getArtistBookings(user.id);
 
-    const [todaysSchedule] = useState<Booking[]>([
-        {
-            id: "today1",
-            clientName: "Sarah Johnson",
-            clientEmail: "sarah@email.com",
-            clientPhone: "+1 (555) 111-2222",
-            service: "Bridal Makeup",
-            date: "2025-11-01",
-            time: "10:00 AM",
-            duration: 2,
-            price: 200,
-            status: "confirmed",
-            createdAt: "2025-10-25"
-        },
-        {
-            id: "today2",
-            clientName: "Emma Davis",
-            clientEmail: "emma@email.com",
-            clientPhone: "+1 (555) 333-4444",
-            service: "Evening Glam",
-            date: "2025-11-01",
-            time: "3:00 PM",
-            duration: 1.5,
-            price: 150,
-            status: "confirmed",
-            createdAt: "2025-10-30"
+            setTimeSlots(slots);
+            setBookings(artistBookings);
+
+            // Separate pending bookings and today's schedule
+            const pending = artistBookings.filter(booking => booking.status === 'pending');
+            const today = new Date().toISOString().split('T')[0];
+            const todayBookings = artistBookings.filter(booking =>
+                booking.date === today && booking.status === 'confirmed'
+            );
+
+            setPendingBookings(pending);
+            setTodaysSchedule(todayBookings);
         }
-    ]);
+    }, [user?.id]);
+
+    const [pendingBookings, setPendingBookings] = useState<Booking[]>([]);
+    const [todaysSchedule, setTodaysSchedule] = useState<Booking[]>([]);
 
     const [reviews] = useState<Review[]>([
         {
@@ -164,7 +92,7 @@ const ArtistDashboard = () => {
             clientName: "Rachel Smith",
             service: "Bridal Makeup",
             rating: 5,
-            comment: "Absolutely stunning work! Bella made me feel like a goddess on my wedding day.",
+            comment: "Absolutely stunning work! Made me feel like a goddess on my wedding day.",
             date: "2025-10-20"
         },
         {
@@ -186,19 +114,23 @@ const ArtistDashboard = () => {
     ]);
 
     const handleAddSlot = () => {
-        if (newSlot.date && newSlot.time && newSlot.duration && newSlot.service && newSlot.price) {
-            const slot: TimeSlot = {
-                id: Date.now().toString(),
-                date: newSlot.date,
-                time: newSlot.time,
-                duration: parseInt(newSlot.duration),
-                service: newSlot.service,
-                price: parseInt(newSlot.price),
-                isAvailable: true
-            };
-            setTimeSlots([...timeSlots, slot]);
-            setNewSlot({ date: "", time: "", duration: "", service: "", price: "" });
-            setIsAddSlotOpen(false);
+        if (newSlot.date && newSlot.time && newSlot.duration && newSlot.service && newSlot.price && user?.id) {
+            try {
+                const slot = dataService.addTimeSlot(user.id, {
+                    date: newSlot.date,
+                    time: newSlot.time,
+                    duration: parseInt(newSlot.duration),
+                    service: newSlot.service,
+                    price: parseInt(newSlot.price),
+                    isAvailable: true
+                });
+
+                setTimeSlots([...timeSlots, slot]);
+                setNewSlot({ date: "", time: "", duration: "", service: "", price: "" });
+                setIsAddSlotOpen(false);
+            } catch (error) {
+                console.error('Error adding time slot:', error);
+            }
         }
     };
 
@@ -223,7 +155,14 @@ const ArtistDashboard = () => {
     };
 
     const handleDeleteSlot = (slotId: string) => {
-        setTimeSlots(prev => prev.filter(slot => slot.id !== slotId));
+        if (user?.id) {
+            try {
+                dataService.removeTimeSlot(user.id, slotId);
+                setTimeSlots(prev => prev.filter(slot => slot.id !== slotId));
+            } catch (error) {
+                console.error('Error deleting time slot:', error);
+            }
+        }
     };
 
     const getStatusColor = (status: string) => {

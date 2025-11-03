@@ -3,10 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Instagram, Phone, Mail } from "lucide-react";
 import UserMenu from "@/components/auth/UserMenu";
+import LoginModal from "@/components/auth/LoginModal";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const { userType, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -21,8 +23,8 @@ const Navigation = () => {
 
   const handleBookNowClick = () => {
     if (!isAuthenticated) {
-      // If not logged in, redirect to home page where they can sign up
-      navigate('/');
+      // If not logged in, show the login/signup modal
+      setShowLoginModal(true);
     } else if (userType === 'client') {
       // If client, redirect to dashboard where they can find artists
       navigate('/dashboard/client');
@@ -133,6 +135,10 @@ const Navigation = () => {
           </div>
         )}
       </div>
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
     </nav>
   );
 };

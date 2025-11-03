@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -13,11 +13,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import LoginModal from "@/components/auth/LoginModal";
-import { User, Settings, LogOut, Calendar, Palette, Heart, Home } from "lucide-react";
+import { User, LogOut, Calendar, Palette, Heart, Home } from "lucide-react";
 
 const UserMenu = () => {
     const { user, userType, isAuthenticated, logout } = useAuth();
     const [showLoginModal, setShowLoginModal] = useState(false);
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        navigate('/'); // Redirect to homepage after logout
+    };
 
     if (!isAuthenticated) {
         return (
@@ -105,11 +111,11 @@ const UserMenu = () => {
                         <>
                             <DropdownMenuItem className="cursor-pointer">
                                 <Calendar className="mr-2 h-4 w-4" />
-                                <span>Manage Bookings</span>
+                                <Link to="/dashboard/artist">Manage Bookings</Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem className="cursor-pointer">
                                 <Palette className="mr-2 h-4 w-4" />
-                                <span>Portfolio Manager</span>
+                                <Link to="/dashboard/artist">Portfolio Manager</Link>
                             </DropdownMenuItem>
                         </>
                     )}
@@ -119,15 +125,10 @@ const UserMenu = () => {
                         <Link to={`/profile/${userType}`}>Profile</Link>
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem className="cursor-pointer">
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Settings</span>
-                    </DropdownMenuItem>
-
                     <DropdownMenuSeparator className="bg-border/50" />
 
                     <DropdownMenuItem
-                        onClick={logout}
+                        onClick={handleLogout}
                         className="cursor-pointer text-red-600 focus:text-red-600"
                     >
                         <LogOut className="mr-2 h-4 w-4" />
